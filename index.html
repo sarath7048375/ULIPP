@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>INL Sep 2026 — Incentive & Product Credit Calculator</title>
+<style>
+:root{--red:#a51f2a;--red2:#c8323d;--ink:#222;--muted:#6b7280;--bg:#f6f7f9;--card:#fff;--line:#e5e7eb}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(135deg,#8f1823,#bd2631);color:white;padding:24px 5vw;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px #0002}
+h1{margin:0 0 6px;font-size:25px} header p{margin:0;opacity:.9}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px} nav button{border:0;border-radius:999px;padding:9px 14px;background:#fff2;color:#fff;cursor:pointer}
+main{max-width:1200px;margin:26px auto;padding:0 18px}.tab{display:none}.tab.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 2px 10px #0000000a}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}input,select{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:10px;font-size:15px;background:white}
+button.primary{background:var(--red);color:#fff;border:0;border-radius:10px;padding:11px 15px;font-weight:700;cursor:pointer;margin-top:14px}
+.result{margin-top:15px;padding:14px;border-radius:12px;background:#fff4f4;border:1px solid #f0c8cc}.big{font-size:25px;font-weight:800;color:var(--red)}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}th,td{border:1px solid var(--line);padding:8px;text-align:left}th{background:#fafafa}
+.note{font-size:12px;color:var(--muted);line-height:1.5}.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#f2dfe1;color:#7e1720;font-size:12px;font-weight:700}
+ul{line-height:1.6}.hero{margin-bottom:18px}.search{margin:0 0 14px}
+@media(max-width:600px){h1{font-size:20px}.card{padding:14px}}
+</style>
+</head>
+<body>
+<header>
+<h1>INL September 2026 — Incentive & Product Credit Calculator</h1>
+<p>Prototype built from the uploaded “Initiatives for Sep 2026 - L1 & ARDM” PDF. More PDFs/products can be added later.</p>
+<nav>
+<button onclick="show('product')">Product Credit</button>
+<button onclick="show('l1')">L1 Incentive</button>
+<button onclick="show('ardm')">ARDM Incentive</button>
+<button onclick="show('eim')">EIM Compensation</button>
+<button onclick="show('council')">Council</button>
+<button onclick="show('rules')">Rules & Reference</button>
+</nav>
+</header>
+
+<main>
+<section id="product" class="tab active">
+<div class="hero"><h2>Product Credit Calculator</h2><p class="note">Enter product, annual premium and plan details. The calculator applies the product-credit rules encoded from the PDF.</p></div>
+<div class="grid">
+<div class="card">
+<label>Product</label><select id="prod" onchange="productFields()">
+<option>Prosper Shield</option><option>GAIN</option><option>GAIN 11/12 PPT</option><option>GAIN PLUS / GAIN</option><option>SMART SAVINGS</option>
+<option>Pension Pro 1 PPT</option><option>Pension 2 PPT</option><option>Pension 3 PPT (2)</option><option>Pension 3 PPT (3+)</option><option>Pension Others</option>
+<option>GEM</option><option>ACE</option><option>PAR</option><option>NS / NS+</option><option>SAFE</option><option>Other Non Par</option><option>WIN</option><option>Other ULIPs</option><option>Super Suraksha Elite / Plus</option>
+</select>
+<label>Annualized Premium (₹)</label><input id="premium" type="number" value="200000" min="0">
+<label>PPT (years)</label><input id="ppt" type="number" value="10" min="1">
+<label>PT (years)</label><input id="pt" type="number" value="25" min="0">
+<label>Age of L2BI (for Prosper Shield)</label><input id="age" type="number" value="36" min="0">
+<label>ECS attached?</label><select id="ecs"><option value="yes">Yes</option><option value="no">No</option></select>
+<label>Rider premium (₹)</label><input id="rider" type="number" value="0" min="0">
+<label>Special option</label><select id="special"><option value="">None</option><option value="ticket2">Ticket size ≥ 2L</option><option value="ticket3">Ticket size ≥ 3L</option><option value="ticket4">Ticket size ≥ 4L</option><option value="smart5000">₹5,000 Smart Savings rider attached to GAIN</option></select>
+<button class="primary" onclick="calcProduct()">Calculate</button>
+<div id="productResult" class="result">Enter details and click Calculate.</div>
+</div>
+<div class="card">
+<h3>Product-credit rules captured</h3>
+<ul>
+<li>Single Premium & Top-up count as 10%.</li>
+<li>Riders are treated as their base plan.</li>
+<li>Cancer Protection / Term policies sold to the same customer in the same month are treated as Rider.</li>
+<li>If L1 does minimum 2 Cancer NOPs in a month, full Rider credit applies even if minimum rider-premium condition is not met.</li>
+<li>L2s, BMs and RMs receive the same product credit as the L1 for that policy.</li>
+</ul>
+<p class="note">Source: PDF page 21. The company reserves the right to change the grid.</p>
+</div>
+</div>
+</section>
+
+<section id="l1" class="tab">
+<div class="grid">
+<div class="card">
+<h2>September Initiative — L1</h2>
+<label>WCP achieved (₹ lakh)</label><input id="l1wcp" type="number" step=".01" value="1.5">
+<label>Achievement date</label><select id="l1date"><option value="11">By 11 Sep</option><option value="15">By 15 Sep</option></select>
+<label>Achieved through Prosper Shield?</label><select id="l1ps"><option value="no">No</option><option value="yes">Yes</option></select>
+<button class="primary" onclick="calcL1()">Calculate Reward</button>
+<div id="l1Result" class="result"></div>
+</div>
+<div class="card"><h3>Special gift for L1 logins</h3><table><tr><th>WRP slab</th><th>Gift budget</th></tr><tr><td>₹1.0L</td><td>₹2,000</td></tr><tr><td>₹1.5L</td><td>₹2,500</td></tr><tr><td>₹2.0L</td><td>₹3,000</td></tr></table><p class="note">Login period: 28 Aug 2026 to 1 Sep 2026; issuance by 17 Sep 2026.</p></div>
+</div>
+</section>
+
+<section id="ardm" class="tab">
+<div class="grid">
+<div class="card">
+<h2>September Initiative — ARDM</h2>
+<label>WCP achieved / ask (₹ lakh)</label><input id="ardmwcp" type="number" step=".01" value="5">
+<label>Slab ending</label><select id="ardmend"><option value="15">15 Sep</option><option value="30">30 Sep</option></select>
+<label>13th month persistency (%)</label><input id="ardmp" type="number" step=".1" value="87">
+<button class="primary" onclick="calcARDM()">Calculate</button>
+<div id="ardmResult" class="result"></div>
+</div>
+<div class="card">
+<h3>Activity allowance</h3>
+<label>Active L1 count by 15 Sep</label><input id="activeL1" type="number" value="2" min="0">
+<button class="primary" onclick="calcActivity()">Calculate</button>
+<div id="activityResult" class="result"></div>
+<p class="note">Active L1 = L1 doing ₹50k WRP on issuance basis in Sep 2026.</p>
+</div>
+</div>
+</section>
+
+<section id="eim" class="tab">
+<div class="grid">
+<div class="card">
+<h2>EIM Compensation</h2>
+<label>Rolling 12-month WCP (₹ lakh)</label><input id="eimwcp" type="number" step=".01" value="12">
+<label>Product Fee / FYC base amount (₹)</label><input id="eimbase" type="number" value="100000">
+<button class="primary" onclick="calcEIM()">Calculate Milestone Fee</button>
+<div id="eimResult" class="result"></div>
+</div>
+<div class="card"><h3>Milestone slabs</h3><table><tr><th>Rolling 12M WCP</th><th>Fee % of FYC</th></tr>
+<tr><td>&lt; ₹6L</td><td>0%</td></tr><tr><td>₹6L</td><td>80%</td></tr><tr><td>₹8L</td><td>120%</td></tr><tr><td>₹12L</td><td>130%</td></tr><tr><td>₹25L</td><td>175%</td></tr><tr><td>₹45L</td><td>190%</td></tr><tr><td>₹75L</td><td>200%</td></tr><tr><td>₹100L</td><td>220%</td></tr></table></div>
+</div>
+</section>
+
+<section id="council" class="tab">
+<div class="card">
+<h2>CEO Council Gates</h2>
+<label>WCP (₹ lakh)</label><input id="cwcp" type="number" step=".01" value="75">
+<label>Qualifier type</label><select id="ctype"><option>Select MDRT Council</option><option>Cabinet MDRT Council</option><option>Double MDRT Council</option><option>COT Council</option><option>TOT Council</option></select>
+<button class="primary" onclick="calcCouncil()">Check</button>
+<div id="cResult" class="result"></div>
+<table><tr><th>Council</th><th>WCP target</th><th>Training / Convention</th><th>Special reward by 30 Sep</th></tr>
+<tr><td>Select MDRT</td><td>₹52.10L</td><td>Prague</td><td>+₹35k</td></tr>
+<tr><td>Cabinet MDRT</td><td>₹75L</td><td>Prague + Amsterdam</td><td>+₹50k</td></tr>
+<tr><td>Double MDRT</td><td>₹100L</td><td>Prague + Amsterdam</td><td>+₹75k / extra seat or cash option</td></tr>
+<tr><td>COT</td><td>₹1.56Cr</td><td>Prague + Amsterdam</td><td>+₹1L / extra seat or cash option</td></tr>
+<tr><td>TOT</td><td>₹3.13Cr</td><td>Prague + Amsterdam</td><td>+₹1.5L / extra seat or cash option</td></tr>
+</table>
+<p class="note">PDF also specifies 13th-month persistency 87% and 25th-month overall persistency 70% for this council section.</p>
+</div>
+</section>
+
+<section id="rules" class="tab">
+<div class="grid">
+<div class="card"><h2>Reference / Business Rules</h2>
+<ul>
+<li>Prosper Shield minimum premium reduced to ₹1 lakh.</li>
+<li>Prosper Shield credit/FYC grid varies by premium band and PPT; FYC is indicative and varies with age of L2BI.</li>
+<li>25% of payout to L1s & L2s is deferred and paid with first renewal, subject to the stated conditions.</li>
+<li>For all L1s, 25% of earnings from GAIN, GEM, Prosper Shield and IIP 10/12 PPT component may be deferred and paid with first-year renewal collection, subject to minimum 80% due-book collection.</li>
+<li>Quality recruitment: new IMs are expected to have business in hand; minimum 5 sales calls in first 7 working days; specified M1 business norm applies.</li>
+<li>Poor-quality recruitment penalty: ₹1,000 per qualifying inactive C/D-category IM for recruiting ARDM/BM, with the stated effective date and incentive deduction rule.</li>
+</ul></div>
+<div class="card"><h2>Adding more PDFs</h2><p>Future PDFs can be incorporated into the same calculation engine. Product tables, incentive slabs, manager rules and new products can be added without changing the main screen.</p><p class="note">This is the first working prototype. Image-heavy commission tables and any rules not yet reliably extracted are intentionally not guessed.</p></div>
+</div>
+</section>
+</main>
+
+<script>
+function show(id){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+function money(n){return '₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2})}
+function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
+function calcProduct(){
+ const p=document.getElementById('prod').value, prem=+document.getElementById('premium').value, ppt=+document.getElementById('ppt').value, pt=+document.getElementById('pt').value, age=+document.getElementById('age').value, ecs=document.getElementById('ecs').value, rider=+document.getElementById('rider').value, sp=document.getElementById('special').value;
+ let credit=0,fyc=null,notes=[];
+ if(p==='Prosper Shield'){
+   let band=prem<200000?0:prem<250000?1:2;
+   const rows=[[9,60,9,65,9,70],[9,60,9,75,9,80],[15,100,18,110,20,110]];
+   let i=ppt<=5?0:ppt<=7?1:2; let a=rows[band];
+   let base=a[i*2], wcp=a[i*2+1]; // credit
+   credit=wcp; fyc=base;
+   if(age<36){credit*=.8;fyc*=.8;notes.push('L2BI age <36: credit & FYC reduced by 20%.')}
+   if(ecs==='no'){credit=Math.max(0,credit-10);notes.push('No ECS: 10% deducted from base-credit component.')}
+   notes.push('Prosper Shield grid uses premium band and PPT.');
+ } else if(p==='GAIN'){
+   if(prem<110000){notes.push('Minimum annualized premium ₹1.10L not met.');}
+   credit=50+(ppt===10?20:0)+(prem>=200000?10:0)+((ppt===10&&(pt===25||pt===30))?10:0)+10;
+   if(ecs==='no') credit-=10; credit=clamp(credit,0,110);
+ } else if(p==='GAIN 11/12 PPT'){
+   credit=50+30+(prem>=200000?10:0)+10+10;if(ecs==='no')credit-=10;credit=clamp(credit,0,110);
+ } else if(p==='GAIN PLUS / GAIN'){
+   credit=90+(prem>=300000?10:0)+(sp==='smart5000'?40:0);if(ecs==='no')credit-=10;credit=clamp(credit,0,100);
+ } else if(p==='SMART SAVINGS'){credit=60+(sp==='smart5000'?40:0);if(ecs==='no')credit-=10;credit=clamp(credit,0,100)}
+ else if(p.startsWith('Pension')){
+   if(p==='Pension Pro 1 PPT') credit=10;
+   if(p==='Pension 2 PPT') credit=20+(prem>=2000000?20:prem>=1000000?10:0)+5;
+   if(p==='Pension 3 PPT (2)') credit=25+(prem>=2000000?20:prem>=1000000?10:0)+5;
+   if(p==='Pension 3 PPT (3+)') credit=35+(prem>=2000000?20:prem>=1000000?10:0)+5;
+   if(p==='Pension Others') credit=(ppt===10?75:40)+(prem>=400000?10:0)+15+10;
+   if(ecs==='no')credit-=10; credit=Math.max(0,credit); notes.push('Pension 2/3 PPT credits apply only to Return of Premium variant.');
+ } else if(p==='GEM'){
+   credit=ppt<=6?40:ppt===7?70:ppt===8?80:ppt>=10?100:0; if(prem>=200000)credit+=10;if(rider>0)credit+=10;if(ecs==='no')credit-=10;credit=clamp(credit,0,120);
+ } else if(['ACE','PAR','NS / NS+','SAFE','Other Non Par'].includes(p)){
+   const base={ACE:60,'PAR':70,'NS / NS+':60,SAFE:(ppt===7||ppt===8?65:60),'Other Non Par':60}[p];
+   credit=base;if(ppt===10)credit+=p==='ACE'?30:p==='PAR'?20:p==='NS / NS+'?10:0;
+   if(p==='ACE'&&prem>=250000)credit+=10;if(p==='PAR'&&prem>=96000)credit+=15;if(p==='NS / NS+'&&prem>=450000)credit+=10;if(p==='SAFE'&&prem>=60000)credit+=10;if(p==='Other Non Par'&&prem>=35000)credit+=10;
+   if((p==='NS / NS+'||p==='SAFE'||p==='Other Non Par')&&pt===20)credit+=20;if(rider>0)credit+=10;if(ecs==='no')credit-=10;credit=clamp(credit,0,115);
+ } else if(p==='WIN'){credit=40+(prem>=500000?20:0)+20+(rider>0?20:0);if(ecs==='no')credit-=10;credit=clamp(credit,0,80)}
+ else if(p==='Other ULIPs'){credit=30+(prem>=500000?10:0)+20+(rider>0?20:0);if(ecs==='no')credit-=10;credit=clamp(credit,0,60)}
+ else if(p==='Super Suraksha Elite / Plus'){
+   const base=ppt===10?100:ppt===7?90:ppt===5?80:110; credit=base+(ecs==='yes'?10:0)+(pt>=40? (ppt<=5?5:10):0)+(rider>0?(ppt===10?15:ppt===7?10:10):0); credit=clamp(credit,0,150); notes.push('Super Suraksha grid has separate NB/renewal commission rates.');
+ }
+ const wcp=prem*credit/100;
+ document.getElementById('productResult').innerHTML=`<div class="big">${credit.toFixed(2)}% Max/Product Credit</div><div>WCP / credited premium: <b>${money(wcp)}</b></div>${fyc!==null?`<div>Indicative FYC rate: <b>${fyc.toFixed(2)}%</b></div>`:''}${notes.length?'<hr><ul>'+notes.map(x=>'<li>'+x+'</li>').join('')+'</ul>':''}`;
+}
+function calcL1(){
+ const w=+l1wcp.value,d=+l1date.value,ps=l1ps.value==='yes';let reward='No slab'; 
+ if(d===11&&w>=1.5) reward='Gold Coin ₹7,500'+(ps?' + Prosper Shield condition met':'');
+ else if(d===11&&w>=1.1) reward='Silver Coin ₹3,500'+(ps?' (Prosper Shield)':'');
+ else if(d===15&&w>=2) reward='Gold Coin ₹11,000'+(ps?' (Prosper Shield)':'');
+ else if(d===15&&w>=1.5) reward='Silver Coin ₹2,500';
+ document.getElementById('l1Result').innerHTML=`<div class="big">${reward}</div><p>Only the highest reward earned under the September L1 initiative is eligible.</p>`;
+}
+function calcARDM(){
+ const w=+ardmwcp.value,end=+ardmend.value,p=+ardmp.value;
+ let thresholds=end===15?[2.5,3.5,5,6,8,10,12,16,20]:[3.5,5,6,8,10,12,15,20,999];
+ let rewards=end===15?['Cordelia 2N + ₹10k','Cordelia 2N + ₹30k','Bali 2N-3D + ₹20k','Bali 2N-3D + ₹25k','Bali 2N-3D + ₹50k','Bali 2N-3D + ₹1.2L','Bali 2N-3D + ₹1.2L + ₹30k per ₹2L traditional WRP','Bali 2N-3D + ₹1.2L + ₹30k per ₹2L traditional WRP','Bali 2N-3D + ₹1.2L + ₹30k per ₹2L traditional WRP']:['Cordelia 2N + ₹10k','Cordelia 2N + ₹30k','Bali 2N-3D + ₹20k','Bali 2N-3D + ₹25k','Bali 2N-3D + ₹50k','Bali 2N-3D + ₹1.2L','Bali 2N-3D + ₹1.2L + ₹30k per ₹2L traditional WRP','Bali 2N-3D + ₹1.2L + ₹30k per ₹2L traditional WRP','Bali 2N-3D + ₹1.2L + ₹30k per ₹2L traditional WRP'];
+ let i=-1;for(let k=0;k<thresholds.length;k++)if(w>=thresholds[k])i=k;if(i<0){document.getElementById('ardmResult').innerHTML='Below first slab.';return}
+ let trip=p>=87?'Fully Sponsored':p>=82?'Co-pay ₹10k':p>=78?'Co-pay ₹15k':p>=75?'Co-pay ₹20k':p>=70?'Co-pay ₹25k':'Nil';
+ document.getElementById('ardmResult').innerHTML=`<div class="big">Slab ${i+1}</div><div>${rewards[i]}</div><p>13th M persistency trip treatment: <b>${trip}</b>.</p><p class="note">The PDF also states special credits of ₹50k for each M0 EIM launched with Cordelia & above qualification and ₹50k for each CAT A L1 qualifying Cordelia & above.</p>`;
+}
+function calcActivity(){const n=+activeL1.value;const r=n>=4?10000:n>=3?6000:n>=2?3000:0;document.getElementById('activityResult').innerHTML=`<div class="big">${money(r)}</div><div>Activity allowance for ${n} active L1(s).</div>`}
+function calcEIM(){const w=+eimwcp.value,base=+eimbase.value;let pct=w>=100?220:w>=75?200:w>=45?190:w>=25?175:w>=12?130:w>=8?120:w>=6?80:0;document.getElementById('eimResult').innerHTML=`<div class="big">${pct}% of FYC</div><div>Milestone fee: <b>${money(base*pct/100)}</b></div>`}
+function calcCouncil(){const w=+cwcp.value,t=ctype.value;const req={'Select MDRT Council':52.1,'Cabinet MDRT Council':75,'Double MDRT Council':100,'COT Council':156,'TOT Council':313}[t];document.getElementById('cResult').innerHTML=w>=req?`<div class="big">Qualified</div><div>${t} — target ₹${req} lakh</div>`:`<div class="big">Not qualified</div><div>Short by ₹${(req-w).toFixed(2)} lakh for ${t}.</div>`}
+function productFields(){}
+calcProduct();calcL1();calcARDM();calcActivity();calcEIM();calcCouncil();
+</script>
+</body></html>
